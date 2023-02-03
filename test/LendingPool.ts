@@ -1,5 +1,4 @@
-import { time, loadFixture } from "@nomicfoundation/hardhat-network-helpers";
-import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
+import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from "chai";
 import { ethers } from "hardhat";
 
@@ -69,8 +68,8 @@ describe("LendingPool", function () {
             "You cannot lend or close lending to yourself"
           );
         });
-      });
     });
+
 
     describe("Events", function () {
       it("Should emit the `LendingAccepted`", async function () {
@@ -88,4 +87,5 @@ describe("LendingPool", function () {
         expect(otherAccountDebtRest).to.equals(acceptedAmount);
       });
     });
+  });
 });
