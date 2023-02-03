@@ -38,3 +38,17 @@ console.log(await lendingPool.lendFrom('0xf39Fd6e51aad88F6F4ce6aB8827279cffFb922
 console.log(await lendingPool.totalLendingAmount());
 
 ```
+
+get events:
+
+```
+const LendingPool = await ethers.getContractFactory("LendingPool");
+const lendingPool = await LendingPool.deploy();
+
+console.log(await lendingPool.lendFrom('0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199', 100));
+
+const receiveFilter = lendingPool.filters.Lend('0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199', null);
+const signer = await ethers.getSigner();
+const logs = await signer.provider.getLogs(receiveFilter);
+console.log(logs);
+```

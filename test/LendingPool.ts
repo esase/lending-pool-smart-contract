@@ -4,6 +4,8 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 
 describe("LendingPool", function () {
+  const lendingAmount = 100;
+ 
   async function deployBasicFixture() {
     // Contracts are deployed using the first signer/account by default
     const [owner, otherAccount] = await ethers.getSigners();
@@ -29,64 +31,61 @@ describe("LendingPool", function () {
       it("Should trigger error if lender and borrower is the same", async function () {
         const { lendingPool, owner } = await loadFixture(deployBasicFixture);
  
-        await expect(lendingPool.lendFrom(owner.address, 100)).to.be.revertedWith(
-          "You cannot lend to yourself"
-        );
-      });
-
-      it("Should trigger error if the account already is in a debt", async function () {
-        const { lendingPool, otherAccount } = await loadFixture(deployBasicFixture);
- 
-        await lendingPool.lendFrom(otherAccount.address, 100);
- 
-        await expect(lendingPool.lendFrom(otherAccount.address, 200)).to.be.revertedWith(
-          "You already lent from this account"
+        await expect(lendingPool.lendFrom(owner.address, lendingAmount)).to.be.revertedWith(
+          "You cannot lend or close lending to yourself"
         );
       });
     });
 
     describe("Events", function () {
-      it("Should emit the `Lend` event on lending", async function () {
-        const amount = 100;
+      it("Should emit the `Lend` event", async function () {
         const { lendingPool, owner, otherAccount } = await loadFixture(deployBasicFixture);
 
-        await expect(lendingPool.lendFrom(otherAccount.address, amount))
+        await expect(lendingPool.lendFrom(otherAccount.address, lendingAmount))
           .to.emit(lendingPool, "Lend")
-          .withArgs(owner.address, otherAccount.address, amount);
+          .withArgs(owner.address, otherAccount.address, lendingAmount);
 
         const ownerDebt = await lendingPool.totalLendingAmountOf(owner.address);
 
-        expect(ownerDebt).to.equals(amount);
+        expect(ownerDebt).to.equals(lendingAmount);
       });
     });
   });
 
-  describe("CloseLendings", function () {
+  describe("AcceptLendings", function () {
     describe("Validations", function () {
-      it("Should trigger error if there is no debt", async function () {
-        const { lendingPool, otherAccount } = await loadFixture(deployBasicFixture);
- 
-        await expect(lendingPool.closeLendingFrom(otherAccount.address)).to.be.revertedWith(
-          "There is no debt"
-        );
+        it("Should trigger error if amount is less or equals to 0", async function () {
+          const { lendingPool, otherAccount } = await loadFixture(deployBasicFixture);
+  
+          await expect(lendingPool.acceptLendingFrom(otherAccount.address, 0)).to.be.revertedWith(
+            "You can lend amount which is greater then 0"
+          );
+        });
+
+        it("Should trigger error if lender and borrower is the same", async function () {
+          const { lendingPool, owner } = await loadFixture(deployBasicFixture);
+  
+          await expect(lendingPool.acceptLendingFrom(owner.address, lendingAmount)).to.be.revertedWith(
+            "You cannot lend or close lending to yourself"
+          );
+        });
       });
     });
 
     describe("Events", function () {
-      it("Should emit the `LendingClosed` event on lending", async function () {
-        const amount = 100;
+      it("Should emit the `LendingAccepted`", async function () {
+        const acceptedAmount = lendingAmount / 2;
         const { lendingPool, owner, otherAccount } = await loadFixture(deployBasicFixture);
 
-        lendingPool.lendFrom(otherAccount.address, amount);
+        lendingPool.connect(otherAccount).lendFrom(owner.address, lendingAmount);
 
-        await expect(lendingPool.connect(otherAccount).closeLendingFrom(owner.address))
-          .to.emit(lendingPool, "LendingClosed")
-          .withArgs(otherAccount.address, owner.address, amount);
+        await expect(lendingPool.connect(owner).acceptLendingFrom(otherAccount.address, acceptedAmount))
+          .to.emit(lendingPool, "LendingAccepted")
+          .withArgs(owner.address, otherAccount.address, acceptedAmount);
 
-        const ownerDebt = await lendingPool.totalLendingAmountOf(owner.address);
+        const otherAccountDebtRest = await lendingPool.totalLendingAmountOf(otherAccount.address);
 
-        expect(ownerDebt).to.equals(0);
+        expect(otherAccountDebtRest).to.equals(acceptedAmount);
       });
     });
-  });
 });
