@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
 // Uncomment this line to use console.log
@@ -13,6 +13,7 @@ contract LendingPool {
         address indexed _lender,
         uint _amount
     );
+
     event LendingAccepted(
         address indexed _lender,
         address indexed _borrower,
