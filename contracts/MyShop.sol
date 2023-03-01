@@ -1,34 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-contract Ownable {
-    address public owner;
-
-    constructor() {
-        owner = msg.sender;
-    }
-
-    modifier onlyOwner {
-        require(owner == msg.sender, "Only owner can perform the action");
-        _;
-    }
-}
-
-contract Withdrawable is Ownable {
-    event Withdraw(address recipient, uint amount);
-
-    function balance() external view returns(uint) {
-        return address(this).balance;
-    }
-
-    function withdraw() external onlyOwner {
-        emit Withdraw(owner, address(this).balance);
- 
-        payable(owner).transfer(address(this).balance);
-    }
-}
+import "./Ownable.sol";
+import "./Withdrawable.sol";
 
 contract MyShop is Ownable, Withdrawable {
+    constructor() Ownable (msg.sender) {
+    }
+ 
     struct Service {
         string service;
         uint amount;
