@@ -54,7 +54,7 @@ describe("MyShop", function () {
     });
 
     describe("Events", function () {
-      it("Should emit the `Paying` event", async function () {
+      it("Should emit the `Withdraw` event", async function () {
         const { myShop, owner, otherAccount } = await loadFixture(deployBasicFixture);
         const ownerInitialBalance = await owner.getBalance(); 
         const amount = ethers.utils.parseEther("1.0");
@@ -63,12 +63,14 @@ describe("MyShop", function () {
           value: amount,
         });
 
+        expect(await myShop.balance()).to.equal(amount);
+
         await expect(myShop.withdraw())
-          .to.emit(myShop, "Paying")
+          .to.emit(myShop, "Withdraw")
           .withArgs(owner.address, amount);
 
-          expect(await owner.getBalance()).to.greaterThan(ownerInitialBalance);
-          expect(await myShop.provider.getBalance(myShop.address)).to.equal(0);
+        expect(await owner.getBalance()).to.greaterThan(ownerInitialBalance);
+        expect(await myShop.balance()).to.equal(0);
       });
     });
   });

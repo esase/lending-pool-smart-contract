@@ -14,7 +14,21 @@ contract Ownable {
     }
 }
 
-contract MyShop is Ownable {
+contract Withdrawable is Ownable {
+    event Withdraw(address recipient, uint amount);
+
+    function balance() external view returns(uint) {
+        return address(this).balance;
+    }
+
+    function withdraw() external onlyOwner {
+        emit Withdraw(owner, address(this).balance);
+ 
+        payable(owner).transfer(address(this).balance);
+    }
+}
+
+contract MyShop is Ownable, Withdrawable {
     struct Service {
         string service;
         uint amount;
@@ -23,17 +37,10 @@ contract MyShop is Ownable {
     mapping(address => Service[]) public payments;
 
     event Paying(address sender, uint amount);
-    event Witdraw(address recipient, uint amount);
 
     function payForService(string memory service) external payable {
         payments[msg.sender].push(Service(service, msg.value));
 
         emit Paying(msg.sender, msg.value);
-    }
-
-    function withdraw() external onlyOwner {
-        emit Paying(owner, address(this).balance);
- 
-        payable(owner).transfer(address(this).balance);
     }
 }
