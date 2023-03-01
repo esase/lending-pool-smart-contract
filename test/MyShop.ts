@@ -48,7 +48,7 @@ describe("MyShop", function () {
         const { myShop, otherAccount } = await loadFixture(deployBasicFixture);
 
         await expect(myShop.connect(otherAccount).withdraw()).to.be.revertedWith(
-          "Only contract owner can withdraw"
+          "Only owner can perform the action"
         );
       });
     });
