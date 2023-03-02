@@ -7,7 +7,16 @@ describe("MyShop", function () {
     // Contracts are deployed using the first signer/account by default
     const [owner, otherAccount] = await ethers.getSigners();
 
-    const MyShop = await ethers.getContractFactory("MyShop");
+    const AddressExt = await ethers.getContractFactory("AddressExt");
+    const addressExt = await AddressExt.deploy();
+    await addressExt.deployed();
+
+    const MyShop = await ethers.getContractFactory("MyShop", {
+      libraries: {
+        AddressExt: addressExt.address,
+      },
+    });
+ 
     const myShop = await MyShop.deploy();
 
     return { myShop, owner, otherAccount };
