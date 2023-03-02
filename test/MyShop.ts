@@ -31,21 +31,35 @@ describe("MyShop", function () {
   });
 
   describe("Paying", function () {
+    const amount = ethers.utils.parseEther("1.0");
+    const service = "test-service";
+
+    describe("Validations", function () {
+      it("Should trigger error if recipient address is zero", async function () {
+        const { myShop, otherAccount } = await loadFixture(deployBasicFixture);
+
+        await expect(myShop.connect(otherAccount).payForService(service, ethers.constants.AddressZero, {
+          value: amount,
+        })).to.be.revertedWith(
+          "Zero account is not acceptable"
+        );
+      });
+    });
+ 
     describe("Events", function () {
       it("Should emit the `Paying` event", async function () {
-        const { myShop, otherAccount } = await loadFixture(deployBasicFixture);
-        const amount = ethers.utils.parseEther("1.0");
-        const service = "test-service";
- 
-        await expect(myShop.connect(otherAccount).payForService(service, {
+        const { myShop, owner, otherAccount } = await loadFixture(deployBasicFixture);
+
+        await expect(myShop.connect(otherAccount).payForService(service, owner.address, {
           value: amount,
         }))
           .to.emit(myShop, "Paying")
-          .withArgs(otherAccount.address, amount);
+          .withArgs(otherAccount.address, owner.address, service, amount);
 
         const createdService = await myShop.payments(otherAccount.address, 0);
 
         expect(createdService.service).to.equals(service);
+        expect(createdService.recipient).to.equals(owner.address);
         expect(createdService.amount).to.equals(amount);
       });
     });
@@ -68,7 +82,7 @@ describe("MyShop", function () {
         const ownerInitialBalance = await owner.getBalance(); 
         const amount = ethers.utils.parseEther("1.0");
 
-        await myShop.connect(otherAccount).payForService("test-service", {
+        await myShop.connect(otherAccount).payForService("test-service", owner.address, {
           value: amount,
         });
 

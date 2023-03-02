@@ -13,18 +13,19 @@ contract MyShop is Ownable, Withdrawable {
  
     struct Service {
         string service;
+        address recipient;
         uint amount;
     }
 
     mapping(address => Service[]) public payments;
 
-    event Paying(address sender, uint amount);
+    event Paying(address sender, address recipient, string service, uint amount);
 
-    function payForService(string memory service) external payable {
-        require(AddressExt.notZeroAccount(msg.sender) == true, "Zero account is not acceptable");
+    function payForService(string memory service, address recipient) external payable {
+        require(recipient.notZeroAccount() == true, "Zero account is not acceptable");
 
-        payments[msg.sender].push(Service(service, msg.value));
+        payments[msg.sender].push(Service(service, recipient, msg.value));
 
-        emit Paying(msg.sender, msg.value);
+        emit Paying(msg.sender, recipient, service, msg.value);
     }
 }
